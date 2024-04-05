@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/itshnawy/HijriNow/issues"
   },
-  "homepage": "https://github.com/itshnawy/HijriNow#readme"
+  "homepage": "https://github.com/itshnawy/HijriNow#readme",
+  "dependencies": {
+    "hijri-now": "^1.0.1"
+  }
 }
