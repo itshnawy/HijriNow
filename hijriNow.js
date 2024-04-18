@@ -1,11 +1,122 @@
-'use strict';
-
 const HijriNow = {
-  currentLanguage: 'ar', // Default language set to Arabic
+  currentLanguage: 'ar',
   today: function today() {
     const today = new Date();
-    return this.gregorianToHijri(today.getFullYear(), today.getMonth() + 1, today.getDate());
+    const hj = this.currentLanguage === "ar" ? ' هجري' : 'h';
+    return this.gregorianToHijri(today.getFullYear(), today.getMonth() + 1, today.getDate()) + hj ;
   },
+  month: function month() {
+    const [day, month, year] = this.today().split("/");
+    return month
+  },
+  year: function year() {
+    const [day, month, year] = this.today().split(/[\/هجري]/);
+    return year
+  },
+  day: function day(){
+    const [day, month, year] = this.today().split("/");
+    return day
+  },
+  getMonthName: function getMonthName() {
+    const month = this.month();
+    return fetch(this.currentLanguage === "ar" ? 'data/months.json' : 'data/months_en.json')
+   .then(response => {
+     if (!response.ok) {
+       throw new Error('Network response was not ok');
+     }
+     return response.json();
+   })
+   .then(data => {
+    return data[month.toString()];
+   })
+   .catch(error => {
+     console.error('There was a problem fetching the data:', error);
+     return null;
+   });
+  },
+  getDayName: function getDayName() {
+    const day = new Date();
+    let d = day.getDay();
+
+    return fetch(this.currentLanguage === "ar" ? 'data/days.json' : 'data/days_en.json')
+   .then(response => {
+     if (!response.ok) {
+       throw new Error('Network response was not ok');
+     }
+     return response.json();
+   })
+   .then(data => {
+    return data[d.toString()];
+   })
+   .catch(error => {
+     console.error('There was a problem fetching the data:', error);
+     return null;
+   });
+ }, 
+  CongratsNow: function CongratsNow() {
+  let chk = this.isTodayEid();
+  let chklg = this.currentLanguage === "ar" ? 'eid' : 'eiden';
+    return fetch('data/congrats.json')
+   .then(response => {
+     if (!response.ok) {
+       throw new Error('Network response was not ok');
+     }
+     return response.json();
+   })
+   .then(data => {
+    if (chk === true) {console.log("happy eid"); return data[chklg];} else if (chk !== true) {console.log("Today's Not The Eid"); return null;}
+    
+   })
+   .catch(error => {
+     console.error('There was a problem fetching the data:', error);
+     return null;
+   });
+  },
+  addHijriDays: function addHijriDays(dateString,days) {
+    const [day, month, year] = dateString.split("/");
+    let dd = new Date(year, month - 1, day);
+    const ddt = new Date(dd);
+    ddt.setDate(ddt.getDate() + days);
+
+   return this.gregorianToHijri(ddt.getFullYear(), ddt.getMonth() + 1, ddt.getDate())
+  },
+  isTodayEid: function isTodayEid() {
+   let monthAndDay = this.day().toString() + "/" + this.month().toString();
+   return fetch('data/eid.json')
+   .then(response => {
+     if (!response.ok) {
+       throw new Error('Network response was not ok');
+     }
+     return response.json();
+   })
+   .then(data => {
+     return !!data[monthAndDay]
+   })
+   .catch(error => {
+     console.error('There was a problem fetching the data:', error);
+     return null;
+   });
+
+  },
+  todayInText: async function todayInText() {
+    let day = this.day();
+    let tmonth = await this.getMonthName(); 
+    let year = this.year();
+
+    try {
+        let response = await fetch('data/daysText.json');
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        let data = await response.json();
+        let tday = data[day];
+        return tday + " من " + tmonth + " سنة " + year;
+    } catch (error) {
+        console.error('There was a problem fetching the data:', error);
+        return null;
+    }
+}
+,
   toGregorian: function toGregorian(dateString, splitter) {
     if (!splitter) splitter = "/";
     const [day, month, year] = dateString.split(splitter);
@@ -22,11 +133,11 @@ const HijriNow = {
     day = parseInt(day);
     if (isNaN(year) || isNaN(month) || isNaN(day)) return "Error Input";
 
-    const ii = year - 1;
-    const iln = ii * 12 + month;
-    const mcjdn = day + this.ummalqura_dat[iln - 1] - 1;
-    const cjdn = mcjdn + 2400000;
-    return this.julianToGregorian(cjdn);
+    const a = year - 1;
+    const b = a * 12 + month;
+    const njdn = day + this.ummalqura[b - 1] - 1;
+    const jdn = njdn + 2400000;
+    return this.julianToGregorian(jdn);
   },
   gregorianToHijri: function gregorianToHijri(pYear, pMonth, pDay) {
     let year = parseInt(pYear);
@@ -40,32 +151,29 @@ const HijriNow = {
 
     const a = Math.floor(year / 100);
     const jgc = a - Math.floor(a / 4) - 2;
-    const cjdn = Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day - jgc - 1524;
+    const jdn = Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day - jgc - 1524;
 
-    // Calculate the Hijri year based on the calculated cjdn
-    const yearDiff = Math.floor((cjdn - 1948083) / 354.367);
+    const yearDiff = Math.floor((jdn - 1948083) / 354.367);
     const hijriYear = yearDiff; // Subtracting 1 from the Hijri year
 
-    // Calculate the Hijri month and day
-    const remainder = (cjdn - 1948083) % 354.367;
+    const remainder = (jdn - 1948083) % 354.367;
     const hijriMonth = Math.floor(remainder / 29.5305) + 1;
-    const hijriDay = Math.ceil(remainder % 29.5305) - 1; // Subtract 1 from the Hijri day
-
+    const hijriDay = Math.ceil(remainder % 29.5305) - 1; 
     return `${hijriDay}/${hijriMonth}/${hijriYear}`;
 },
 
-  hijriDateFromCJDN: function hijriDateFromCJDN(cjdn) {
-    const mcjdn = cjdn - 2400000;
+  hijriDateFromJDN: function hijriDateFromJDN(jdn) {
+    const njdn = jdn - 2400000;
     let i = 0;
-    for (; i < this.ummalqura_dat.length; i++) {
-      if (this.ummalqura_dat[i] > mcjdn) break;
+    for (; i < this.ummalqura.length; i++) {
+      if (this.ummalqura[i] > njdn) break;
     }
-    const iln = i + 16260;
-    const ii = Math.floor((iln - 1) / 12);
-    const iy = ii + 1;
-    const im = iln - 12 * ii;
-    const id = mcjdn - this.ummalqura_dat[i - 1] + 1;
-    return `${id}/${im}/${iy}`;
+    const a = i + 16260;
+    const b = Math.floor((a - 1) / 12);
+    const c = b + 1;
+    const d = a - 12 * b;
+    const e = njdn - this.ummalqura[i - 1] + 1;
+    return `${e}/${d}/${c}`;
   },
   julianToGregorian: function julianToGregorian(julianDate) {
     const z = Math.floor(julianDate + 0.5);
@@ -80,7 +188,7 @@ const HijriNow = {
     const year = c - (month > 2.5 ? 4716 : 4715);
     return `${day}/${month}/${year}`;
   },
-   ummalqura_dat: [
+   ummalqura: [
     28607, 28636, 28665, 28695, 28724, 28754, 28783, 28813, 28843, 28872, 28901, 28931, 28960, 28990, 29019, 29049, 29078, 29108, 29137, 29167,
     29196, 29226, 29255, 29285, 29315, 29345, 29375, 29404, 29434, 29463, 29492, 29522, 29551, 29580, 29610, 29640, 29669, 29699, 29729, 29759,
     29788, 29818, 29847, 29876, 29906, 29935, 29964, 29994, 30023, 30053, 30082, 30112, 30141, 30171, 30200, 30230, 30259, 30289, 30318, 30348,
