@@ -1,6 +1,6 @@
 {
   "name": "hijri-now",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "A JavaScript library for converting between Gregorian and Hijri (Islamic) calendar dates.",
   "main": "hijriNow.js",
   "scripts": {
@@ -25,8 +25,5 @@
   "bugs": {
     "url": "https://github.com/itshnawy/HijriNow/issues"
   },
-  "homepage": "https://github.com/itshnawy/HijriNow#readme",
-  "dependencies": {
-    "hijri-now": "^1.5.0"
-  }
+  "homepage": "https://github.com/itshnawy/HijriNow#readme"
 }
