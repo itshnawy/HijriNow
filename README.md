@@ -1,4 +1,9 @@
-# HijriNow
+<div style="text-align:center;">
+<h1>HijriNow</h1> 
+<img alt="NPM Version" src="https://img.shields.io/npm/v/hijri-now?style=flat&logo=NPM"> 
+  
+<img alt="NPM Downloads" src="https://img.shields.io/npm/dy/hijri-now?style=flat&logo=npm">
+</div>
 
 HijriNow is a JavaScript library that provides functionality for working with the Hijri calendar. This library allows you to convert dates between the Gregorian and Hijri calendars, retrieve information about the current date in the Hijri calendar, and more.
 
