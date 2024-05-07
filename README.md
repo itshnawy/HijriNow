@@ -134,7 +134,7 @@ npm i hijri-now
   ```javascript
   HijriNow.todayInText()
     .then(dateText => {
-      console.log(dateText); // Output: "التاسع من شوال سنة 1446 هجري" (depending on the current date)
+      console.log(dateText); // Output: "التاسع من شوال سنة 1445 هجري" (depending on the current date)
     })
     .catch(error => {
       console.error(error);
